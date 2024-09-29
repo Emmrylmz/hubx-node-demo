@@ -1,0 +1,35 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+
+  nodeapp:
+    image: emmrylmz/hubx-node-demo
+    build: .
+    volumes:
+      - .:/app              # Mount the current directory (.) to /app in the container
+      - /app/node_modules 
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    networks:
+      - mynetwork
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    command: npm run dev
+
+networks:
+  mynetwork:
+    driver: bridge
