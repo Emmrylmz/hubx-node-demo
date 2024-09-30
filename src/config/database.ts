@@ -1,54 +1,79 @@
-import pkg from "pg";
-const { Pool } = pkg;
+import mongoose, { Connection } from 'mongoose';
 
-// PostgreSQL connection pool
-export const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",     // or 'postgres' if in Docker
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "password",
-  database: process.env.DB_NAME || "mydb",
-  port: 5432,
-  max: 10,                // Maximum number of connections in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Time to wait for a connection before throwing an error
-});
+export class MongoDB {
+  private uri: string;
+  private dbName: string;
+  private connection: Connection | null = null;
+  private retryInterval: number = 5000; // Retry connection every 5 seconds if failed
 
-// Start the pool by testing the connection
-export async function startPool(): Promise<void> {
-  try {
-    // Test the connection by executing a simple query
-    await pool.query("SELECT 1");
-    console.log("Database connected successfully");
-  } catch (err) {
-    console.error("Database connection failed", err);
-    throw err;
+  constructor(uri: string, dbName: string) {
+    this.uri = uri;
+    this.dbName = dbName;
+  }
+
+  // Start Mongoose connection
+  public async start(): Promise<void> {
+    try {
+      await mongoose.connect(this.uri, {
+        dbName: this.dbName,
+        maxPoolSize: 10, // Similar to max pool size in MongoClient
+      });
+      this.connection = mongoose.connection;
+
+      this.connection.on('connected', () => {
+        console.log(`Mongoose connected to database: ${this.dbName}`);
+      });
+
+      this.connection.on('error', (err) => {
+        console.error('Mongoose connection error:', err);
+      });
+
+      this.connection.on('disconnected', () => {
+        console.log('Mongoose connection disconnected');
+      });
+    } catch (err) {
+      console.error(`Mongoose connection failed. Retrying in ${this.retryInterval / 1000} seconds...`, err);
+      setTimeout(() => this.start(), this.retryInterval);
+    }
+  }
+
+  // Shutdown Mongoose connection
+  public async shutdown(): Promise<void> {
+    try {
+      if (this.connection) {
+        await mongoose.disconnect();
+        console.log("Mongoose connection closed.");
+      }
+    } catch (err) {
+      console.error("Error shutting down Mongoose connection", err);
+      throw err;
+    }
+  }
+
+  // Get the mongoose connection
+  public getConnection(): Connection {
+    if (!this.connection) {
+      throw new Error("Mongoose connection not initialized");
+    }
+    return this.connection;
   }
 }
 
-// Gracefully shut down the connection pool
-export async function shutdownPool(): Promise<void> {
-  try {
-    await pool.end(); // This closes all active connections
-    console.log("Database connection pool closed.");
-  } catch (err) {
-    console.error("Error shutting down the database pool", err);
-    throw err;
-  }
-}
+// Singleton instance of MongoDB
+export const mongoInstance = new MongoDB(
+  process.env.MONGO_URI || 'mongodb://localhost:27017',
+  process.env.DB_NAME || 'testdb'
+);
 
-// Function to query the database
-export async function query(text: string, params?: any[]): Promise<any> {
-  const start = Date.now();  // For performance monitoring
-  const client = await pool.connect();
-  try {
-    const result = await client.query(text, params);
-    const duration = Date.now() - start;
-    console.log("Executed query", { text, duration, rows: result.rowCount });
-    return result;
-  } catch (err) {
-    console.error("Query error", err);
-    throw err;
-  } finally {
-    client.release();  // Release the client back to the pool
+// Function to ensure the instance is initialized
+export const getMongoInstance = async (): Promise<MongoDB> => {
+  if (!mongoInstance) {
+    throw new Error("MongoDB instance not initialized");
   }
-}
+
+  if (!mongoInstance.getConnection()) {
+    await mongoInstance.start(); // Ensure Mongoose is connected
+  }
+
+  return mongoInstance;
+};

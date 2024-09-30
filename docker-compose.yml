@@ -1,13 +1,12 @@
 version: '3'
 services:
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
     ports:
-      - "5432:5432"
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
     networks:
       - mynetwork
 
@@ -15,21 +14,22 @@ services:
     image: emmrylmz/hubx-node-demo
     build: .
     volumes:
-      - .:/app              # Mount the current directory (.) to /app in the container
+      - .:/app              
       - /app/node_modules 
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      MONGO_URI: ${MONGO_URI}
       DB_NAME: ${DB_NAME}
     networks:
       - mynetwork
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      - mongodb
     command: npm run dev
 
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  mongo_data:
