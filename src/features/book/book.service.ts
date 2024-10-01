@@ -1,33 +1,38 @@
-// src/services/BookService.ts
-
-import { BookRepository } from "../repositories/bookRepository";
-import { BookFactory } from "./bookFactory.ts";
+import { BookRepository } from "./book.repository.ts";
+import { BookFactory } from "./book.factory.ts";
+import { NotFoundError, ValidationError } from "../../errors/errors.ts";
 import {
-  NotFoundError,
-  ValidationError,
-} from "../errors/errors.ts";
-import {
-  IBook,
   CreateBookResponseDto,
   GetBookDto,
   UpdateBookDto,
   UpdateBookResponseDto,
   DeleteBookResponseDto,
-  getAllBooksResponseDto,
-} from "../models/Book";
+  GetAllBooksResponseDto,
+} from "./book.dto.ts";
+import { IBook } from "./Book.model.ts";
 
 export class BookService {
   constructor(private bookRepository: BookRepository) {}
 
-  public async getAllBooks(page: number, limit: number):Promise<getAllBooksResponseDto> {
-    const { books, total, totalPages } = await this.bookRepository.getAllBooks(page, limit);
+  public async getAllBooks(
+    page: number,
+    limit: number
+  ): Promise<GetAllBooksResponseDto> {
+    const { books, total, totalPages } = await this.bookRepository.getAllBooks(
+      page,
+      limit
+    );
 
-    if (books.length === 0 && total > 0) {
+    if (books.length === 0 && total === 0) {
       throw new NotFoundError("No books found for the given page");
     }
 
-
-    return BookFactory.createListAllBooksResponseDto(books, total, totalPages, page);
+    return BookFactory.createListAllBooksResponseDto(
+      books,
+      total,
+      totalPages,
+      page
+    );
   }
 
   public async getBookById(bookId: string): Promise<GetBookDto> {
@@ -47,9 +52,7 @@ export class BookService {
     bookId: string,
     bookData: UpdateBookDto
   ): Promise<UpdateBookResponseDto> {
-    if (Object.keys(bookData).length === 0) {
-      throw new ValidationError("Book data is required for update.");
-    }
+    
     const updatedBook = await this.bookRepository.updateBook(bookId, bookData);
     if (!updatedBook) {
       throw new NotFoundError(`Book with ID ${bookId} not found.`);

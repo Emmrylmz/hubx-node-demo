@@ -10,7 +10,7 @@
     "allowImportingTsExtensions": true,
     "outDir": "dist",
     "lib": [ "esnext" ],
-    "types": [ "node" ],
+    "types": [ "jest","node" ],
     "baseUrl": "./"
   },
   "ts-node": {
@@ -20,5 +20,5 @@
   "include": [
     "src/**/*.ts",
     "bin/*.ts"
-  ]
+, "src/tests/**/*", "jest.config.js"  ]
 }

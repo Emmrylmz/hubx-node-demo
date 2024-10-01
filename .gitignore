@@ -1,2 +1,7 @@
 # .gitignore
 .env
+error.log
+combined.log
+node_modules/
+dist/
+coverage/

@@ -1,7 +1,7 @@
 import express, { Express } from "express";
 import http from "http";
 import { mongoInstance } from "./config/database.ts";
-import { initializeBookModule } from "./config/bookModuleInitializer.ts";
+import { initializeBookModule } from "./features/book/book.moduleInitializer.ts";
 import { errorHandler } from "./middlewares/errorHandler.ts";
 import logger from "./utils/logger.ts";
 

@@ -4,7 +4,7 @@ export class MongoDB {
   private uri: string;
   private dbName: string;
   private connection: Connection | null = null;
-  private retryInterval: number = 5000; // Retry connection every 5 seconds if failed
+  private retryInterval: number = 5000; 
 
   constructor(uri: string, dbName: string) {
     this.uri = uri;
@@ -16,7 +16,7 @@ export class MongoDB {
     try {
       await mongoose.connect(this.uri, {
         dbName: this.dbName,
-        maxPoolSize: 10, // Similar to max pool size in MongoClient
+        maxPoolSize: 10, 
       });
       this.connection = mongoose.connection;
 
@@ -37,7 +37,7 @@ export class MongoDB {
     }
   }
 
-  // Shutdown Mongoose connection
+  
   public async shutdown(): Promise<void> {
     try {
       if (this.connection) {
@@ -50,7 +50,7 @@ export class MongoDB {
     }
   }
 
-  // Get the mongoose connection
+  
   public getConnection(): Connection {
     if (!this.connection) {
       throw new Error("Mongoose connection not initialized");
@@ -65,14 +65,13 @@ export const mongoInstance = new MongoDB(
   process.env.DB_NAME || 'testdb'
 );
 
-// Function to ensure the instance is initialized
 export const getMongoInstance = async (): Promise<MongoDB> => {
   if (!mongoInstance) {
     throw new Error("MongoDB instance not initialized");
   }
 
   if (!mongoInstance.getConnection()) {
-    await mongoInstance.start(); // Ensure Mongoose is connected
+    await mongoInstance.start(); 
   }
 
   return mongoInstance;

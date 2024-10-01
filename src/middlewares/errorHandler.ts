@@ -80,6 +80,7 @@ class ErrorHandler {
     return { statusCode, message, errors };
   }
 
+  //To log error in a database if needed
   private generateErrorId(): string {
     return Math.random().toString(36).substr(2, 9);
   }

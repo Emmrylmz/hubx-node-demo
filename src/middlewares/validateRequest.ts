@@ -1,12 +1,25 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError, ZodSchema } from "zod";
 
-// Generic input validation middleware
-export const validateRequest = (schema: ZodSchema) => {
+interface ValidationSchemas {
+  body?: ZodSchema;
+  query?: ZodSchema;
+  params?: ZodSchema;
+}
+
+export const validateRequest = (schemas: ValidationSchemas) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      schema.parse(req.body);
-      next();
+      if (schemas.body) {
+        schemas.body.parse(req.body); // Validate request body
+      }
+      if (schemas.query) {
+        schemas.query.parse(req.query); // Validate query parameters
+      }
+      if (schemas.params) {
+        schemas.params.parse(req.params); // Validate route parameters
+      }
+      next(); // If validation passes, proceed to the next middleware
     } catch (error) {
       if (error instanceof ZodError) {
         const formattedErrors = error.errors.map((err) => ({
@@ -19,8 +32,7 @@ export const validateRequest = (schema: ZodSchema) => {
           errors: formattedErrors,
         });
       }
-
-      next(error);
+      next(error); // Forward the error to the error-handling middleware
     }
   };
 };
