@@ -1,61 +1,69 @@
 // src/controllers/BookController.ts
 
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { BookService } from "../services/bookService.ts";
+import { validateObjectId } from "../utils/helper.ts";
+import { ZodError } from "zod";
+import { ValidationError } from "../errors/errors.ts";
 
 export class BookController {
   constructor(private bookService: BookService) {}
 
-  public getAllBooks = async (req: Request, res: Response) => {
+  public getAllBooks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const books = await this.bookService.getAllBooks();
-      res.json(books);
-
+      const queryParams = {
+        page: Number(req.query.page),
+        limit: Number(req.query.limit),
+        sortBy: req.query.sortBy as string,
+        sortOrder: req.query.sortOrder as "asc" | "desc",
+      };
+      const result = await this.bookService.getAllBooks(queryParams);
+      res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
-
-  public getBookById = async (req: Request, res: Response) => {
-    try {
-      const book = await this.bookService.getBookById(req.params.id);
-      if (!book) {
-        res.status(404).json({ message: "Book not found" });
+      if (error instanceof ZodError) {
+        next(new ValidationError("Invalid query parameters"));
       } else {
-        res.json(book);
+        next(error);
       }
-    } catch (error) {
-      res.status(500).json({ error: error.message });
     }
   };
 
-  public createBook = async (req: Request, res: Response) => {
+  public getBookById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      validateObjectId(req.params.id);
+      const book = await this.bookService.getBookById(req.params.id);
+      res.status(200).json(book);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public createBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const newBook = await this.bookService.createBook(req.body);
       res.status(201).json(newBook);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   };
 
-  public updateBook = async (req: Request, res: Response) => {
+  public updateBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const updatedBook = await this.bookService.updateBook(
-        req.params.id,
-        req.body
-      );
-      res.json(updatedBook);
+      validateObjectId(req.params.id);
+      const updatedBook = await this.bookService.updateBook(req.params.id, req.body);
+      res.status(200).json(updatedBook);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   };
 
-  public deleteBook = async (req: Request, res: Response) => {
+  public deleteBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await this.bookService.deleteBook(req.params.id);
-      res.status(204).send(); // No Content
+      validateObjectId(req.params.id);
+      const response = await this.bookService.deleteBook(req.params.id);
+      res.status(200).json(response);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   };
 }

@@ -1,4 +1,3 @@
-// src/errors/NotFoundError.ts
 export class NotFoundError extends Error {
     constructor(message: string) {
       super(message);
@@ -6,7 +5,6 @@ export class NotFoundError extends Error {
     }
   }
   
-  // src/errors/ValidationError.ts
   export class ValidationError extends Error {
     constructor(message: string) {
       super(message);
@@ -14,7 +12,6 @@ export class NotFoundError extends Error {
     }
   }
   
-  // src/errors/DatabaseError.ts
   export class DatabaseError extends Error {
     constructor(message: string) {
       super(message);

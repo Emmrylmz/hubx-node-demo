@@ -2,8 +2,8 @@ import express, { Express } from "express";
 import http from "http";
 import { mongoInstance } from "./config/database.ts";
 import { initializeBookModule } from "./config/bookModuleInitializer.ts";
-import { Db } from "mongodb";
-import { globalErrorHandler } from "./middlewares/globalErrorHandler.ts";
+import { errorHandler } from "./middlewares/errorHandler.ts";
+import bodyParser from "body-parser";
 
 export class App {
   public app: Express;
@@ -22,7 +22,9 @@ export class App {
   // Middleware configuration
   private configureMiddleware(): void {
     this.app.use(express.json());
-    this.app.use(globalErrorHandler)
+    this.app.use(errorHandler.handle)
+    this.app.use(bodyParser.json());
+
   }
 
   private initialize_routes(): void {
