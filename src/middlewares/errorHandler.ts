@@ -1,28 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import winston from 'winston';
 import {
   ValidationError,
   NotFoundError,
   DatabaseError,
 } from "../errors/errors.ts";
+import logger from "../utils/logger.ts"; 
 
 class ErrorHandler {
-  private logger: winston.Logger;
-
-  constructor() {
-    this.logger = winston.createLogger({
-      level: 'error',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      ),
-      transports: [
-        new winston.transports.File({ filename: 'error.log' }),
-        new winston.transports.Console()
-      ]
-    });
-  }
-
   public handle = (
     err: any,
     req: Request,
@@ -54,7 +38,7 @@ class ErrorHandler {
   }
 
   private logError(err: any, req: Request): void {
-    this.logger.error({
+    logger.error({
       message: `Error ${err.name}: ${err.message}`,
       stack: err.stack,
       method: req.method,
@@ -90,7 +74,7 @@ class ErrorHandler {
         message = "Database error occurred";
         break;
       default:
-        this.logger.error("Unexpected error:", err);
+        logger.error("Unexpected error:", err);
     }
 
     return { statusCode, message, errors };

@@ -5,8 +5,7 @@ import { BookFactory } from "./bookFactory.ts";
 import {
   NotFoundError,
   ValidationError,
-  DatabaseError,
-} from "../errors/errors";
+} from "../errors/errors.ts";
 import {
   IBook,
   CreateBookResponseDto,
@@ -14,22 +13,21 @@ import {
   UpdateBookDto,
   UpdateBookResponseDto,
   DeleteBookResponseDto,
-  PaginationOptions,
-  PaginatedResult,
+  getAllBooksResponseDto,
 } from "../models/Book";
 
 export class BookService {
   constructor(private bookRepository: BookRepository) {}
 
-  public async getAllBooks(
-    options: PaginationOptions
-  ): Promise<PaginatedResult> {
-    try {
-      const { books, totalCount } = await this.bookRepository.findAllBooks(options);
-      return BookFactory.createPaginatedResult(books, totalCount, options.page, options.limit);
-    } catch (error) {
-      throw new DatabaseError(`Error fetching books: ${(error as Error).message}`);
+  public async getAllBooks(page: number, limit: number):Promise<getAllBooksResponseDto> {
+    const { books, total, totalPages } = await this.bookRepository.getAllBooks(page, limit);
+
+    if (books.length === 0 && total > 0) {
+      throw new NotFoundError("No books found for the given page");
     }
+
+
+    return BookFactory.createListAllBooksResponseDto(books, total, totalPages, page);
   }
 
   public async getBookById(bookId: string): Promise<GetBookDto> {
@@ -41,12 +39,8 @@ export class BookService {
   }
 
   public async createBook(bookData: IBook): Promise<CreateBookResponseDto> {
-    try {
-      const newBook = await this.bookRepository.addBook(bookData);
-      return BookFactory.createBookResponseDto(newBook);
-    } catch (error) {
-      throw new DatabaseError(`Error creating new book: ${(error as Error).message}`);
-    }
+    const newBook = await this.bookRepository.addBook(bookData);
+    return BookFactory.createBookResponseDto(newBook);
   }
 
   public async updateBook(

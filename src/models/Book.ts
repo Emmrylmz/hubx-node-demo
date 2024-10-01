@@ -86,34 +86,11 @@ export const bookSchemaZod = z.object({
   author: authorSchemaZod, 
 });
 
-
-// Schema for pagination options
-export const PaginationOptionsSchema = z.object({
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(10),
-  sortBy: z.string().default('title'),
-  sortOrder: z.enum(['asc', 'desc']).default('asc')
-});
+export interface getAllBooksResponseDto {
+  books: IBook[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}
 
 
-// Schema for pagination info
-export const PaginationInfoSchema = z.object({
-  currentPage: z.number().int().positive(),
-  totalPages: z.number().int().nonnegative(),
-  totalItems: z.number().int().nonnegative(),
-  limit: z.number().int().positive(),
-  hasNextPage: z.boolean(),
-  hasPrevPage: z.boolean()
-});
-
-// Schema for the paginated result
-export const PaginatedResultSchema = z.object({
-  data: z.array(bookSchemaZod),
-  pagination: PaginationInfoSchema
-});
-
-// Infer types from schemas
-export type PaginationOptions = z.infer<typeof PaginationOptionsSchema>;
-export type Book = z.infer<typeof bookSchemaZod>;
-export type PaginationInfo = z.infer<typeof PaginationInfoSchema>;
-export type PaginatedResult = z.infer<typeof PaginatedResultSchema>;

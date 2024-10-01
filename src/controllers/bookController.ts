@@ -11,24 +11,26 @@ export class BookController {
 
   public getAllBooks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const queryParams = {
-        page: Number(req.query.page),
-        limit: Number(req.query.limit),
-        sortBy: req.query.sortBy as string,
-        sortOrder: req.query.sortOrder as "asc" | "desc",
-      };
-      const result = await this.bookService.getAllBooks(queryParams);
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+
+      if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1) {
+        throw new ValidationError("Invalid pagination parameters");
+      }
+
+      const result = await this.bookService.getAllBooks(page, limit);
       res.json(result);
     } catch (error) {
-      if (error instanceof ZodError) {
-        next(new ValidationError("Invalid query parameters"));
-      } else {
-        next(error);
-      }
+      next(error);
     }
   };
 
-  public getBookById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+  public getBookById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       validateObjectId(req.params.id);
       const book = await this.bookService.getBookById(req.params.id);
@@ -38,7 +40,11 @@ export class BookController {
     }
   };
 
-  public createBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public createBook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const newBook = await this.bookService.createBook(req.body);
       res.status(201).json(newBook);
@@ -47,17 +53,28 @@ export class BookController {
     }
   };
 
-  public updateBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public updateBook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       validateObjectId(req.params.id);
-      const updatedBook = await this.bookService.updateBook(req.params.id, req.body);
+      const updatedBook = await this.bookService.updateBook(
+        req.params.id,
+        req.body
+      );
       res.status(200).json(updatedBook);
     } catch (error) {
       next(error);
     }
   };
 
-  public deleteBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public deleteBook = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       validateObjectId(req.params.id);
       const response = await this.bookService.deleteBook(req.params.id);

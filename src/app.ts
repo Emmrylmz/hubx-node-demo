@@ -3,7 +3,7 @@ import http from "http";
 import { mongoInstance } from "./config/database.ts";
 import { initializeBookModule } from "./config/bookModuleInitializer.ts";
 import { errorHandler } from "./middlewares/errorHandler.ts";
-import bodyParser from "body-parser";
+import logger from "./utils/logger.ts";
 
 export class App {
   public app: Express;
@@ -13,18 +13,14 @@ export class App {
   constructor(port: number) {
     this.app = express();
     this.port = port;
-
-    // Initialize MongoDB with the URI and database name
-
     this.configureMiddleware();
   }
 
   // Middleware configuration
   private configureMiddleware(): void {
     this.app.use(express.json());
-    this.app.use(errorHandler.handle)
-    this.app.use(bodyParser.json());
-
+    this.initialize_routes();
+    this.app.use(errorHandler.handle);
   }
 
   private initialize_routes(): void {
@@ -35,41 +31,36 @@ export class App {
   // Graceful startup function
   public async start(): Promise<void> {
     try {
-      console.log("Starting application...");
+      logger.info("Starting application...");
 
       await mongoInstance.start();
-      
-      console.log("MongoDB connection established.");
-      
-      this.initialize_routes()
-      
-      
 
-      // Start the Express server
+      logger.info("MongoDB connection established.");
+
+      this.initialize_routes();
+
       this.server = http.createServer(this.app);
       this.server.listen(this.port, () => {
-        console.log(`Server is running on port ${this.port}`);
+        logger.info(`Server is running on port ${this.port}`);
       });
     } catch (error) {
-      console.error("Error during startup:", error);
-      process.exit(1); // Exit if the startup fails
+      logger.error("Error during startup:", error);
+      process.exit(1);
     }
   }
-
   // Graceful shutdown function
   public async shutdown(): Promise<void> {
-    console.log("Shutting down gracefully...");
+    logger.info("Shutting down gracefully...");
 
     if (this.server) {
       this.server.close(async (err) => {
         if (err) {
-          console.error("Error shutting down server:", err);
+          logger.error("Error shutting down server:", err);
           process.exit(1);
         }
 
-        // Shut down MongoDB connection
         await mongoInstance.shutdown();
-        console.log("MongoDB connection closed.");
+        logger.info("MongoDB connection closed.");
 
         process.exit(0);
       });

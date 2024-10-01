@@ -4,7 +4,7 @@ import {
     GetBookDto,
     UpdateBookResponseDto,
     DeleteBookResponseDto,
-    PaginatedResult,
+    getAllBooksResponseDto,
   } from "../models/Book.ts";
   
   export class BookFactory {
@@ -40,16 +40,13 @@ import {
         message: "Book deleted successfully",
       };
     }
-  
-    static createPaginatedResult(books: IBook[], totalCount: number, page: number, limit: number): PaginatedResult {
+    static createListAllBooksResponseDto(books: IBook[], total: number, totalPages: number, page: number): getAllBooksResponseDto {
       return {
-        data: books.map(book => this.createGetBookDto(book)),
-        pagination: {
-          totalItems: totalCount,
-          currentPage: page,
-          limit,
-          totalPages: Math.ceil(totalCount / limit),
-        },
-      };
+        books: books,
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: total
+      }
     }
+  
   }

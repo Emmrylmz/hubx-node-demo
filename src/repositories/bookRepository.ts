@@ -1,50 +1,33 @@
+import { DatabaseError } from "../errors/errors.ts";
 import {
   Book,
   CreateBookDto,
   IBook,
-  PaginatedResult,
-  PaginatedResultSchema,
-  PaginationOptions,
-  PaginationOptionsSchema,
 } from "../models/Book.ts";
 
 export class BookRepository {
   // Find all books
 
-  public async findAllBooks(
-    options: PaginationOptions
-  ): Promise<PaginatedResult> {
-
-    const { page, limit, sortBy, sortOrder } = options;
+  public async getAllBooks(
+    page: number,
+    limit: number
+  ): Promise<{ books: IBook[]; total: number, totalPages: number }> {
     const skip = (page - 1) * limit;
 
-    const sortOptions: { [key: string]: 1 | -1 } = {
-      [sortBy]: sortOrder === "asc" ? 1 : -1,
-    };
+    try {
+      const [books, total] = await Promise.all([
+        Book.find().skip(skip).limit(limit).lean().exec(),
+        Book.countDocuments(),
+      ]);
+      const totalPages = Math.ceil(total / limit);
+      
 
-    const [books, total] = await Promise.all([
-      Book.find({}).sort(sortOptions).skip(skip).limit(limit).exec(),
-      Book.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    const result = {
-      data: books,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems: total,
-        limit,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-
-    console.log(result,"asdasd");
-
-    // Validate the result
-    return PaginatedResultSchema.parse(result);
+      return { books, total, totalPages };
+    } catch (error) {
+      throw new DatabaseError(
+        `Database error while fetching books: ${(error as Error).message}`
+      );
+    }
   }
 
   // Find a book by ID
