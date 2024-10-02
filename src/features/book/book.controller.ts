@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import { BookService } from "./book.service.ts";
 import { validateRequest } from "../../middlewares/validateRequest.ts";
 import { createBookSchemaZod, updateBookSchemaZod } from "./book.schema.zod.ts";
-import { paginationQueryParamsZod } from "../../shared/pagination.validator.ts";
-import { ObjectIdValidationZod } from "../../shared/objectId.validator.ts";
+import { paginationQueryParamsZod } from "../../shared/validators/pagination.validator.ts";
+import { ObjectIdValidationZod } from "../../shared/validators/objectId.validator.ts";
 
 /**
  * Controller class for handling book-related HTTP requests.
+ * Request Validation: The validateRequest middleware validates the query parameters using a Zod schema to ensure input is valid.
  */
 export class BookController {
   /**
@@ -17,7 +18,6 @@ export class BookController {
 
   /**
    * Handles GET request to retrieve all books with pagination.
-   * @type {Array<Function>}
    */
   public getAllBooks = [
     validateRequest({ query: paginationQueryParamsZod }),
@@ -37,7 +37,6 @@ export class BookController {
 
   /**
    * Handles GET request to retrieve a book by its ID.
-   * @type {Array<Function>}
    */
   public getBookById = [
     validateRequest({ params: ObjectIdValidationZod }),
@@ -54,7 +53,6 @@ export class BookController {
 
   /**
    * Handles POST request to create a new book.
-   * @type {Array<Function>}
    */
   public createBook = [
     validateRequest({ body: createBookSchemaZod }),
@@ -71,7 +69,6 @@ export class BookController {
 
   /**
    * Handles PUT request to update an existing book.
-   * @type {Array<Function>}
    */
   public updateBook = [
     validateRequest({
@@ -94,7 +91,6 @@ export class BookController {
 
   /**
    * Handles DELETE request to remove a book.
-   * @type {Array<Function>}
    */
   public deleteBook = [
     validateRequest({ params: ObjectIdValidationZod }),

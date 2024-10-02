@@ -19,6 +19,7 @@ services:
     environment:
       MONGO_URI: ${MONGO_URI}
       DB_NAME: ${DB_NAME}
+      NODE_ENV: ${NODE_ENV}
     networks:
       - mynetwork
     ports:
