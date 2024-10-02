@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import logger from "../utils/logger.ts";
-import { DatabaseError, NotFoundError, ValidationError } from "../errors/errors.ts";
+import {
+  DatabaseError,
+  NotFoundError,
+  ValidationError,
+} from "../errors/errors.ts";
 
 /**
  * Defines the structure of an error handler function.
@@ -9,7 +13,10 @@ import { DatabaseError, NotFoundError, ValidationError } from "../errors/errors.
  * @param {Request} req - The Express request object.
  * @returns {{statusCode: number, message: string, errors?: any}} The error response object.
  */
-type ErrorHandler = (err: Error, req: Request) => {
+type ErrorHandler = (
+  err: Error,
+  req: Request
+) => {
   statusCode: number;
   message: string;
   errors?: any;
@@ -36,11 +43,14 @@ class ErrorHandlerClass {
    * @private
    */
   private initializeErrorHandlers() {
-    this.errorHandlers.set(ValidationError.name, (err: ValidationError, req) => ({
-      statusCode: 422,
-      message: err.message,
-      errors: err.errors,
-    }));
+    this.errorHandlers.set(
+      ValidationError.name,
+      (err: ValidationError, req) => ({
+        statusCode: 422,
+        message: err.message,
+        errors: err.errors,
+      })
+    );
 
     this.errorHandlers.set(NotFoundError.name, (err, req) => ({
       statusCode: 404,
@@ -75,29 +85,37 @@ class ErrorHandlerClass {
     res: Response,
     next: NextFunction
   ): void => {
-    const handler = this.errorHandlers.get(err.constructor.name) || this.errorHandlers.get("default");
+    const handler =
+      this.errorHandlers.get(err.constructor.name) ||
+      this.errorHandlers.get("default");
     const { statusCode, message, errors } = handler(err, req);
+    const isOperationalError = this.errorHandlers.has(err.constructor.name);
+    if (!isOperationalError) {
+      // This is a programming error, so log detailed error for debugging
+      logger.error("Unexpected Programming Error:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+    } else {
+      this.logError(err, req);
 
-    this.logError(err, req);
+      const errorResponse: any = {
+        error: {
+          message,
+          status: statusCode,
+          errorId: this.generateErrorId(),
+        },
+      };
 
-    const errorResponse: any = {
-      error: {
-        message,
-        status: statusCode,
-        errorId: this.generateErrorId(),
-      },
-    };
+      if (errors) {
+        errorResponse.error.errors = errors;
+      }
 
-    if (errors) {
-      errorResponse.error.errors = errors;
+      if (process.env.NODE_ENV) {
+        errorResponse.error.stack = err.stack;
+      }
+
+      const { errorId, ...rest } = errorResponse.error;
+      res.status(statusCode).json(rest);
     }
-
-    if (process.env.NODE_ENV === "development") {
-      errorResponse.error.stack = err.stack;
-    }
-    
-    const { errorId, ...rest } = errorResponse.error;
-    res.status(statusCode).json(rest);
   };
 
   /**
