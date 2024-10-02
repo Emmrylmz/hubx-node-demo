@@ -1,7 +1,5 @@
-import { Schema, model, Document, isValidObjectId } from "mongoose";
-import { z } from "zod";
+import { Schema, model, Document } from "mongoose";
 import {  IAuthor, authorSchema } from "../author/Author.model.ts";
-import { authorSchemaZod } from "../author/author.schema.zod.ts";
 export interface IBook extends Document {
   title: string;
   price: number;
@@ -24,6 +22,5 @@ const bookSchema = new Schema<IBook>({
 
 export const Book = model<IBook>("Book", bookSchema);
 
-// DTO for creating a book
 
 

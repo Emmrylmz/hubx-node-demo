@@ -1,12 +1,11 @@
 import { BookController } from "../book.controller.ts";
 import { BookService } from "../book.service.ts";
 import { Request, Response } from "express";
-import { ValidationError, NotFoundError } from "../../../errors/errors.ts";
+import {  NotFoundError } from "../../../errors/errors.ts";
 import {
-  CreateBookResponseDto,
   GetAllBooksResponseDto,
   GetBookDto,
-  UpdateBookResponseDto,
+  BookResponseDto,
 } from "../book.dto.ts";
 import { IBook } from "src/features/book/Book.model.ts";
 import { ZodError } from "zod";
@@ -70,6 +69,7 @@ describe("BookController", () => {
       };
       mockNext = jest.fn();
     });
+
 
     const runMiddlewares = async (middlewares, req, res, next) => {
       for (const middleware of middlewares) {
@@ -177,7 +177,7 @@ describe("BookController", () => {
   });
 
   describe("createBook", () => {
-    const mockBook: CreateBookResponseDto = {
+    const mockBook: BookResponseDto = {
       data: {
         id: "1",
         title: "New Book",
@@ -227,8 +227,8 @@ describe("BookController", () => {
   });
 
   describe("updateBook", () => {
-    const mockBook: UpdateBookResponseDto = {
-      data: { id: "1" },
+    const mockBook: BookResponseDto = {
+      data: { id: "1", title: "Updated Book" },
       message: "Book updated successfully",
     };
 

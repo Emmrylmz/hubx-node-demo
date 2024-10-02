@@ -1,12 +1,14 @@
 import {
-  CreateBookResponseDto,
+  BookResponseDto,
   GetBookDto,
-  UpdateBookResponseDto,
-  DeleteBookResponseDto,
   GetAllBooksResponseDto,
 } from "./book.dto.ts";
 import { IBook } from "./Book.model.ts";
 
+/**
+* The BookFactory class is a utility class that creates response data 
+* and transfer objects (DTOs) for book-related operations
+**/
 export class BookFactory {
   static createGetBookDto(book: IBook): GetBookDto {
     return {
@@ -22,7 +24,7 @@ export class BookFactory {
     };
   }
 
-  static createBookResponseDto(book: IBook): CreateBookResponseDto {
+  static createBookResponseDto(book: IBook): BookResponseDto {
     return {
       data: {
         id: book._id.toString(),
@@ -32,19 +34,21 @@ export class BookFactory {
     };
   }
 
-  static createUpdateBookResponseDto(book: IBook): UpdateBookResponseDto {
+  static createUpdateBookResponseDto(book: IBook): BookResponseDto {
     return {
       data: {
         id: book._id.toString(),
+        title: book.title,
       },
       message: "Book updated successfully",
     };
   }
 
-  static createDeleteBookResponseDto(book: IBook): DeleteBookResponseDto {
+  static createDeleteBookResponseDto(book: IBook): BookResponseDto {
     return {
       data: {
         id: book._id.toString(),
+        title: book.title,
       },
       message: "Book deleted successfully",
     };

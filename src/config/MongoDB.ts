@@ -1,22 +1,35 @@
 import mongoose, { Connection } from 'mongoose';
 
+/**
+ * Class representing a MongoDB connection manager.
+ */
 export class MongoDB {
   private uri: string;
   private dbName: string;
   private connection: Connection | null = null;
-  private retryInterval: number = 5000; 
+  private retryInterval: number = 5000; // 5 seconds
 
+  /**
+   * Creates an instance of MongoDB.
+   * @param {string} uri - The MongoDB connection URI.
+   * @param {string} dbName - The name of the database to connect to.
+   */
   constructor(uri: string, dbName: string) {
     this.uri = uri;
     this.dbName = dbName;
   }
 
-  // Start Mongoose connection
+  /**
+   * Starts the Mongoose connection to MongoDB.
+   * @public
+   * @returns {Promise<void>}
+   * @throws Will retry connection after a delay if it fails.
+   */
   public async start(): Promise<void> {
     try {
       await mongoose.connect(this.uri, {
         dbName: this.dbName,
-        maxPoolSize: 10, 
+        maxPoolSize: 10, // Arbitrary value
       });
       this.connection = mongoose.connection;
 
@@ -37,7 +50,12 @@ export class MongoDB {
     }
   }
 
-  
+  /**
+   * Gracefully shuts down the Mongoose connection.
+   * @public
+   * @returns {Promise<void>}
+   * @throws Will throw an error if shutdown fails.
+   */
   public async shutdown(): Promise<void> {
     try {
       if (this.connection) {
@@ -50,7 +68,12 @@ export class MongoDB {
     }
   }
 
-  
+  /**
+   * Retrieves the current Mongoose connection.
+   * @public
+   * @returns {Connection} The current Mongoose connection.
+   * @throws Will throw an error if the connection is not initialized.
+   */
   public getConnection(): Connection {
     if (!this.connection) {
       throw new Error("Mongoose connection not initialized");
@@ -59,12 +82,22 @@ export class MongoDB {
   }
 }
 
-// Singleton instance of MongoDB
+/**
+ * Singleton instance of MongoDB.
+ * @type {MongoDB}
+ */
 export const mongoInstance = new MongoDB(
-  process.env.MONGO_URI || 'mongodb://localhost:27017',
-  process.env.DB_NAME || 'testdb'
+  process.env.MONGO_URI,
+  process.env.DB_NAME 
 );
 
+/**
+ * Retrieves the singleton MongoDB instance, ensuring it's connected.
+ * @async
+ * @function getMongoInstance
+ * @returns {Promise<MongoDB>} The MongoDB instance.
+ * @throws Will throw an error if the MongoDB instance is not initialized.
+ */
 export const getMongoInstance = async (): Promise<MongoDB> => {
   if (!mongoInstance) {
     throw new Error("MongoDB instance not initialized");
