@@ -3,6 +3,13 @@
 import { Router } from "express";
 import { BookController } from "./book.controller.ts";
 
+
+
+/**
+ * Creates a new Router with all the routes for the BookController.
+ * @param bookController The BookController instance to use for the routes.
+ * @returns The Router instance with the routes.
+ */
 export const createBookRouter = (bookController: BookController): Router => {
   const router = Router();
 

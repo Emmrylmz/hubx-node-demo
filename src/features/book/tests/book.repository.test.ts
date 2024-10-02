@@ -47,21 +47,30 @@ describe("BookRepository", () => {
 
   describe("findBookById", () => {
     it("should return a book when it exists", async () => {
-      const mockBook = { _id: "1", title: "Book 1" } as IBook;
-      mockBookModel.findById.mockResolvedValue(mockBook);
+      const mockBook = { _id: "1", title: "Book 1" };
+
+      // Simulate Mongoose `findById` method resolving with a book
+      (Book.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockBook),
+      });
 
       const result = await bookRepository.findBookById("1");
 
       expect(result).toEqual(mockBook);
-      expect(mockBookModel.findById).toHaveBeenCalledWith("1");
+      expect(Book.findById).toHaveBeenCalledWith("1");
     });
 
-    it("should return null when book does not exist", async () => {
-      mockBookModel.findById.mockResolvedValue(null);
+    it("should throw DatabaseError if there is a failure in finding a book", async () => {
+      // Simulate Mongoose `findById` method throwing an error
+      (Book.findById as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValue(new Error("Database failure")),
+      });
 
-      const result = await bookRepository.findBookById("1");
-
-      expect(result).toBeNull();
+      await expect(bookRepository.findBookById("1")).rejects.toThrow(
+        DatabaseError
+      );
     });
   });
 
@@ -84,14 +93,18 @@ describe("BookRepository", () => {
   describe("updateBook", () => {
     it("should update an existing book", async () => {
       const mockBook = { _id: "1", title: "Updated Book" } as IBook;
-      mockBookModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockBook),
-      } as any);
+
+      // Mock the Mongoose method `findByIdAndUpdate` to return a chainable object
+      (mockBookModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockBook), // Simulate a resolved book update
+      });
 
       const result = await bookRepository.updateBook("1", {
         title: "Updated Book",
       });
 
+      // Assertions
       expect(result).toEqual(mockBook);
       expect(mockBookModel.findByIdAndUpdate).toHaveBeenCalledWith(
         "1",
@@ -99,19 +112,48 @@ describe("BookRepository", () => {
         { new: true }
       );
     });
+
+    it("should throw DatabaseError if updating a book fails", async () => {
+      // Mock the `findByIdAndUpdate` method to throw an error
+      (mockBookModel.findByIdAndUpdate as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValue(new Error("Database failure")), // Simulate failure
+      });
+
+      await expect(
+        bookRepository.updateBook("1", { title: "Updated Book" })
+      ).rejects.toThrow(DatabaseError); // Expect DatabaseError to be thrown
+    });
   });
 
   describe("deleteBookById", () => {
     it("should delete an existing book", async () => {
       const mockBook = { _id: "1", title: "Book to Delete" } as IBook;
-      mockBookModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockBook),
-      } as any);
+
+      // Mock the Mongoose `findByIdAndDelete` method
+      (mockBookModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockBook), // Simulate a successful delete operation
+      });
 
       const result = await bookRepository.deleteBookById("1");
 
+      // Assertions
       expect(result).toEqual(mockBook);
       expect(mockBookModel.findByIdAndDelete).toHaveBeenCalledWith("1");
+    });
+
+    it("should throw DatabaseError if deleting a book fails", async () => {
+      // Mock the `findByIdAndDelete` method to simulate an error
+      (mockBookModel.findByIdAndDelete as jest.Mock).mockReturnValue({
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockRejectedValue(new Error("Database failure")), // Simulate failure
+      });
+
+      // Expect the DatabaseError to be thrown
+      await expect(bookRepository.deleteBookById("1")).rejects.toThrow(
+        DatabaseError
+      );
     });
   });
 });

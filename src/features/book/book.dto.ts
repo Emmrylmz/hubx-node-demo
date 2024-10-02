@@ -13,8 +13,8 @@ import { IBook } from "./Book.model.ts";
     author: IAuthor;
   }
   
-  // Response DTO for a successful book creation
-  export interface CreateBookResponseDto {
+  // Response DTO for crud operations
+  export interface BookResponseDto {
     data: {
       id: string;
       title: string;
@@ -35,20 +35,6 @@ import { IBook } from "./Book.model.ts";
     message: string;
   }
   
-  // DTO for listing books (simplified book information)
-  export interface ListBookDto {
-    data: {
-      id: string;
-      title: string;
-      price: number;
-    }[];
-    message: string;
-    metadata: {
-      currentPage: number;
-      totalPages: number;
-      totalItems: number;
-    };
-  }
   
   // DTO for updating a book
   export interface UpdateBookDto {
@@ -60,21 +46,6 @@ import { IBook } from "./Book.model.ts";
     publisher?: string;
   }
   
-  // Response DTO for a successful book update
-  export interface UpdateBookResponseDto {
-    data: {
-      id: string;
-    };
-    message: string;
-  }
-  
-  // Response DTO for a successful book deletion
-  export interface DeleteBookResponseDto {
-    data: {
-      id: string;
-    };
-    message: string;
-  }
   
   // Response DTO for getting all books with pagination
   export interface GetAllBooksResponseDto {
