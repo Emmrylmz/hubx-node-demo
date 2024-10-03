@@ -57,8 +57,9 @@ export class App {
 
       await mongoInstance.start();
 
-      logger.info("MongoDB connection established.");
-
+      if (mongoInstance.getConnection()) {
+        logger.info("MongoDB connection established.");
+      }
       this.initialize_routes();
 
       this.server = http.createServer(this.app);
