@@ -7,7 +7,7 @@ Features
 - Express.js Framework: Utilizes Express for efficient routing and middleware support.
 - RESTful API Design: Implements RESTful principles for intuitive API endpoints.
 - Database Integration: Includes examples of database interactions (MongoDB).
-- Error Handling: Implements a centralized error handling mechanism for improved debugging and user feedback.
+- Error Handling: Implements a centralized error handling mechanism for improved debugging and .
 - Docker Support: Containerized for easy setup and deployment.
 
 ## Prerequisites
